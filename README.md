@@ -3,7 +3,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)
-![Last Updated](https://img.shields.io/badge/last%20updated-June%202024-orange.svg)
+![Last Updated](https://img.shields.io/badge/last%20updated-September%202025-orange.svg)
 
 ---
 
