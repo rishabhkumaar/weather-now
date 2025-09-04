@@ -1,6 +1,5 @@
 import axios from "axios";
-import { kv } from "@vercel/kv"; // Free KV database
-// Or import { sql } from "@vercel/postgres"; if you want SQL logging
+import { kv } from "@vercel/kv";
 
 export default async function handler(req, res) {
   try {
@@ -10,16 +9,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Provide city OR lat+lon" });
     }
 
+    const apiKey = process.env.OPENWEATHER_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "Missing OpenWeather API key" });
+    }
+
     const cacheKey = city ? `wx:city:${city}` : `wx:coords:${lat},${lon}`;
     const cached = await kv.get(cacheKey);
 
-    if (cached) {
+    if (cached && cached.current && cached.onecall) {
       return res.status(200).json({ ...cached, cached: true });
     }
 
-    const apiKey = process.env.OPENWEATHER_API_KEY;
     let current;
-
     if (city) {
       current = await axios.get("https://api.openweathermap.org/data/2.5/weather", {
         params: { q: city, units: "metric", appid: apiKey }
@@ -28,6 +30,10 @@ export default async function handler(req, res) {
       current = await axios.get("https://api.openweathermap.org/data/2.5/weather", {
         params: { lat, lon, units: "metric", appid: apiKey }
       });
+    }
+
+    if (current.data.cod !== 200) {
+      return res.status(current.data.cod).json({ error: current.data.message });
     }
 
     const { coord } = current.data;
